@@ -124,3 +124,6 @@ staticfiles/
 
 # Media files
 media/
+
+# Redis
+dump.rdb
