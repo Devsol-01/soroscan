@@ -11,13 +11,12 @@ import pytest
 from django.test import TestCase
 
 from soroscan.ingest.decoder import (
-    ABI_META_SCHEMA,
     decode_event_payload,
     validate_abi_json,
 )
-from soroscan.ingest.models import ContractABI, ContractEvent
+from soroscan.ingest.models import ContractABI
 
-from .factories import ContractABIFactory, TrackedContractFactory, UserFactory
+from .factories import TrackedContractFactory, UserFactory
 
 
 # ---------------------------------------------------------------------------
