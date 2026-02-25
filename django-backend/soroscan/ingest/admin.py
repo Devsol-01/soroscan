@@ -9,18 +9,18 @@ from django.http import HttpResponse
 from django.urls import path
 from django.utils.html import format_html
 
-from .models import ContractABI, ContractEvent, IndexerState, TrackedContract, WebhookDeliveryLog, WebhookSubscription, EventSchema
 from .models import (
     AlertExecution,
     AlertRule,
     APIKey,
+    ContractABI,
     ContractEvent,
     ContractQuota,
+    EventSchema,
     IndexerState,
     TrackedContract,
     WebhookDeliveryLog,
     WebhookSubscription,
-    EventSchema,
 )
 from .tasks import backfill_contract_events
 
