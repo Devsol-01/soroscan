@@ -7,7 +7,7 @@ from django.contrib.admin.helpers import ActionForm
 from django.db.models import Count
 from django.utils.html import format_html
 
-from .models import ContractEvent, IndexerState, TrackedContract, WebhookDeliveryLog, WebhookSubscription, EventSchema
+from .models import ContractABI, ContractEvent, IndexerState, TrackedContract, WebhookDeliveryLog, WebhookSubscription, EventSchema
 from .tasks import backfill_contract_events
 
 
@@ -103,6 +103,32 @@ class EventSchemaAdmin(admin.ModelAdmin):
     search_fields = ["event_type", "contract__name"]
 
 
+@admin.register(ContractABI)
+class ContractABIAdmin(admin.ModelAdmin):
+    """Admin interface for per-contract ABI definitions (issue #58)."""
+
+    list_display = ["contract", "uploaded_at", "updated_at"]
+    list_filter = ["uploaded_at"]
+    search_fields = ["contract__name", "contract__contract_id"]
+    readonly_fields = ["uploaded_at", "updated_at"]
+
+    def save_model(self, request, obj, form, change):
+        """Validate ABI JSON structure before saving."""
+        from .decoder import validate_abi_json
+        import jsonschema as _jsonschema
+
+        try:
+            validate_abi_json(obj.abi_json)
+        except _jsonschema.ValidationError as exc:
+            self.message_user(
+                request,
+                f"Invalid ABI JSON: {exc.message}",
+                level=messages.ERROR,
+            )
+            return
+        super().save_model(request, obj, form, change)
+
+
 @admin.register(ContractEvent)
 class ContractEventAdmin(admin.ModelAdmin):
     """
@@ -116,12 +142,14 @@ class ContractEventAdmin(admin.ModelAdmin):
         "event_type",
         "ledger",
         "validation_status_colored",
+        "decoding_status",
         "timestamp",
         "tx_hash_short",
     ]
     list_filter = [
         "event_type",
         "validation_status",
+        "decoding_status",
         "timestamp",
     ]
     search_fields = [
@@ -141,6 +169,8 @@ class ContractEventAdmin(admin.ModelAdmin):
         "payload",
         "payload_hash",
         "raw_xdr",
+        "decoded_payload",
+        "decoding_status",
         "schema_version",
         "validation_status",
         "timestamp",
